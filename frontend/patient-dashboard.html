@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-header { background-color: var(--primary-color); color: white; padding: 40px 20px; text-align: center; }
+        .dashboard-header h1 { margin-bottom: 10px; font-size: 2rem; }
+        .dashboard-header p { font-size: 1.1rem; opacity: 0.9; }
+        
+        .container { max-width: 900px; margin: -30px auto 40px; padding: 0 20px; position: relative; z-index: 10; }
+        
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .stat-box .label { font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+        .stat-box .value { font-size: 1.4rem; color: var(--primary-color); font-weight: 700; }
+
+        .main-action { background: var(--success-color); color: white; display: flex; align-items: center; justify-content: center; padding: 30px; border-radius: 16px; text-decoration: none; font-size: 1.5rem; font-weight: 700; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(16,185,129,0.2); transition: transform 0.2s; }
+        .main-action:hover { transform: translateY(-3px); }
+        .main-action span { margin-right: 15px; font-size: 2rem; }
+
+        .secondary-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .sec-btn { background: white; padding: 25px; border-radius: 12px; display: flex; align-items: center; text-decoration: none; color: var(--text-primary); font-weight: 600; font-size: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: background 0.2s; }
+        .sec-btn:hover { background: #f8fafc; }
+        .sec-btn span { margin-right: 15px; font-size: 1.8rem; }
+    </style>
+</head>
+<body style="background: #f1f5f9;">
+    <header class="dashboard-header">
+        <h1 id="welcome-msg">Good morning 👋</h1>
+        <p>Let's take care of your health information.</p>
+    </header>
+
+    <main class="container">
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="label">Patient ID</div>
+                <div class="value" id="disp-patient-id">...</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Previous Cases</div>
+                <div class="value" id="disp-cases-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Active Case</div>
+                <div class="value" id="disp-active-case">None</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Last Visit</div>
+                <div class="value">New</div>
+            </div>
+        </div>
+
+        <a href="#" class="main-action" onclick="startNewCase(event)">
+            <span>🩺</span> START NEW CASE
+        </a>
+
+        <div class="secondary-actions">
+            <a href="my-cases.html" class="sec-btn"><span>📋</span> My Cases</a>
+            <a href="my-profile.html" class="sec-btn"><span>👤</span> My Profile</a>
+            <a href="my-documents.html" class="sec-btn"><span>📄</span> My Documents</a>
+            <a href="#" class="sec-btn" onclick="logout()"><span>🚪</span> Logout</a>
+        </div>
+    </main>
+    
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = getAuth();
+            if (!auth || auth.role !== 'patient') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.getElementById('disp-patient-id').textContent = auth.patient_id;
+            
+            const res = await apiFetch(`/api/patient/${auth.patient_id}/profile`);
+            if (res.ok) {
+                document.getElementById('welcome-msg').textContent = `Good morning, ${res.data.full_name} 👋`;
+            }
+
+            const casesRes = await apiFetch(`/api/patient/${auth.patient_id}/cases`);
+            if (casesRes.ok) {
+                document.getElementById('disp-cases-count').textContent = casesRes.data.length;
+                const active = casesRes.data.find(c => c.status === 'in_progress');
+                if (active) {
+                    document.getElementById('disp-active-case').textContent = "1 in progress";
+                }
+            }
+        });
+
+        async function startNewCase(e) {
+            e.preventDefault();
+            const auth = getAuth();
+            
+            // Default to English initially, language selection is first screen
+            const res = await apiFetch('/api/patient/cases/new', {
+                method: 'POST',
+                body: JSON.stringify({
+                    patient_id: auth.patient_id,
+                    language: 'english'
+                })
+            });
+
+            if (res.ok) {
+                // Save active case to local storage
+                localStorage.setItem('mediease_active_case', res.data.case_id);
+                window.location.href = 'case-taking.html';
+            } else {
+                alert("Failed to start new case: " + res.error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Registration - Mediease</title>
+    <meta name="description" content="Register as a Doctor on Mediease.">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Sidebar -->
+        <div class="auth-sidebar" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h1>MEDIEASE DOCTOR</h1>
+            <p>Join the AI-Powered Clinical Platform</p>
+        </div>
+
+        <!-- Registration Form Content -->
+        <div class="auth-content">
+            <div class="auth-card" style="max-width: 600px;">
+                <div class="auth-card-header">
+                    <h2>Create Doctor Account</h2>
+                    <p>Provide your details to register as a healthcare professional.</p>
+                </div>
+
+                <div id="register-alert" class="alert"></div>
+
+                <form id="register-doctor-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg-fullname">Full Name (with title)</label>
+                            <input type="text" id="reg-fullname" class="form-control" required placeholder="e.g. Dr. Ananya Sharma">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-mobile">Mobile Number</label>
+                            <input type="tel" id="reg-mobile" class="form-control" required placeholder="Enter 10-digit mobile number">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg-email">Email Address</label>
+                            <input type="email" id="reg-email" class="form-control" required placeholder="name@hospital.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-regno">Medical Registration Number</label>
+                            <input type="text" id="reg-regno" class="form-control" required placeholder="e.g. MCI-12345">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-spec">Specialization</label>
+                        <select id="reg-spec" class="form-control" required>
+                            <option value="">Select Specialization</option>
+                            <option value="General Physician">General Physician</option>
+                            <option value="Cardiologist">Cardiologist</option>
+                            <option value="Neurologist">Neurologist</option>
+                            <option value="Pediatrician">Pediatrician</option>
+                            <option value="Orthopedic">Orthopedic</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg-password">Password</label>
+                            <input type="password" id="reg-password" class="form-control" required placeholder="Create a password">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-confirm">Confirm Password</label>
+                            <input type="password" id="reg-confirm" class="form-control" required placeholder="Confirm your password">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" required> I agree to the Mediease Provider Terms of Service and Privacy Policy.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="background: var(--success-color);">Register as Doctor</button>
+                    
+                    <div class="auth-links" style="margin-top: 20px; text-align: center;">
+                        <a href="index.html">Already registered? Login here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

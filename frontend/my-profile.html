@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-header { background-color: var(--primary-color); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        
+        .profile-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .profile-header { display: flex; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+        .avatar { width: 80px; height: 80px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; margin-right: 20px; }
+        
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .data-group { margin-bottom: 15px; }
+        .data-label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .data-value { font-size: 1.2rem; color: var(--text-primary); font-weight: 500; }
+    </style>
+</head>
+<body style="background: #f1f5f9;">
+    <header class="dashboard-header">
+        <h2 style="color: white; font-weight: 700;">MEDIEASE <span style="font-size:1rem; opacity:0.8; font-weight:500;">| My Profile</span></h2>
+        <a href="patient-dashboard.html" style="color: white; text-decoration: none; font-weight: 600;">&larr; Back to Dashboard</a>
+    </header>
+
+    <main class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="avatar" id="disp-avatar">👤</div>
+                <div>
+                    <h2 id="disp-name" style="color: var(--text-primary); margin-bottom: 5px;">Loading...</h2>
+                    <p style="color: var(--text-secondary); font-size: 1.1rem;">Patient ID: <strong id="disp-id">...</strong></p>
+                </div>
+            </div>
+
+            <div class="data-grid">
+                <div class="data-group">
+                    <div class="data-label">Age</div>
+                    <div class="data-value" id="disp-age">...</div>
+                </div>
+                <div class="data-group">
+                    <div class="data-label">Gender</div>
+                    <div class="data-value" id="disp-gender" style="text-transform: capitalize;">...</div>
+                </div>
+                <div class="data-group">
+                    <div class="data-label">Mobile Number</div>
+                    <div class="data-value" id="disp-mobile">...</div>
+                </div>
+                <div class="data-group">
+                    <div class="data-label">ABHA ID</div>
+                    <div class="data-value" id="disp-abha">Not Provided</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px; text-align: center;">
+                <button class="btn btn-outline" onclick="alert('Edit profile feature coming soon!')">Edit Profile</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = getAuth();
+            if (!auth || auth.role !== 'patient') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('disp-id').textContent = auth.patient_id;
+
+            const res = await apiFetch(`/api/patient/${auth.patient_id}/profile`);
+            if (res.ok) {
+                const data = res.data;
+                document.getElementById('disp-name').textContent = data.full_name;
+                document.getElementById('disp-avatar').textContent = data.full_name.charAt(0).toUpperCase();
+                document.getElementById('disp-age').textContent = data.age + " years";
+                document.getElementById('disp-gender').textContent = data.gender;
+                document.getElementById('disp-mobile').textContent = data.mobile;
+                if (data.abha_id) {
+                    document.getElementById('disp-abha').textContent = data.abha_id;
+                }
+            } else {
+                alert("Failed to load profile data.");
+            }
+        });
+    </script>
+</body>
+</html>

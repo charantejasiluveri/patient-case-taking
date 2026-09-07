@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Case - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-header { background-color: var(--primary-color); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        
+        .section-card { background: var(--card-background); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 30px; }
+        .section-title { color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; font-size: 1.25rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
+        
+        .data-row { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color); }
+        .data-label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .data-value { font-size: 1.1rem; color: var(--text-primary); }
+        
+        /* Doctor Review Box */
+        .doctor-review-box { background: #ecfdf5; border-left: 5px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: none; }
+        .doctor-review-box.active { display: block; }
+        
+        /* Summary */
+        .ai-summary { background: linear-gradient(to right, #f8fafc, #f1f5f9); border-left: 4px solid var(--primary-color); }
+    </style>
+</head>
+<body style="background-color: var(--background-color);">
+    <header class="dashboard-header">
+        <h2 style="color: white; font-weight: 700;">MEDIEASE <span style="font-size:1rem; opacity:0.8; font-weight:500;">| Case Details</span></h2>
+        <a href="my-cases.html" style="color: white; text-decoration: none; font-weight: 600;">&larr; Back to Cases</a>
+    </header>
+
+    <main class="container">
+        <!-- Left Column: Patient Data & Corrections -->
+        <div>
+            <!-- DOCTOR REVIEW HEADER -->
+            <div id="doctor-review-box" class="doctor-review-box">
+                <h3 style="color: #047857; margin-bottom: 10px;">🩺 DOCTOR REVIEW</h3>
+                <p><strong>Status:</strong> Reviewed ✓</p>
+                <div style="margin-top: 15px;">
+                    <strong>Doctor Feedback:</strong>
+                    <p id="disp-doctor-feedback" style="margin-top: 5px; font-size: 1.05rem;"></p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">Clinical History</div>
+                <div id="history-container">Loading history...</div>
+            </div>
+        </div>
+
+        <!-- Right Column: AI Summary & Actions -->
+        <div>
+            <div class="section-card ai-summary">
+                <div class="section-title" style="border-bottom-color: #cbd5e1; color: var(--text-primary);">
+                    Case Summary
+                </div>
+                
+                <div id="disp-summary" style="font-size: 1rem; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap;">
+                    Loading summary...
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const caseId = urlParams.get('case_id');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = getAuth();
+            if (!auth || auth.role !== 'patient') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (!caseId) {
+                alert("No case ID provided.");
+                window.location.href = 'my-cases.html';
+                return;
+            }
+
+            const res = await apiFetch(`/api/patient/cases/${caseId}`);
+            if (res.ok) {
+                const data = res.data;
+                
+                // Show Doctor Feedback if reviewed
+                if (data.session.status === 'reviewed' || data.session.status === 'confirmed') {
+                    const reviewBox = document.getElementById('doctor-review-box');
+                    reviewBox.classList.add('active');
+                    if (data.feedback && data.feedback.length > 0) {
+                        document.getElementById('disp-doctor-feedback').textContent = data.feedback[0].feedback;
+                    } else {
+                        document.getElementById('disp-doctor-feedback').textContent = "Reviewed successfully with no additional notes.";
+                    }
+                }
+
+                // History
+                const historyContainer = document.getElementById('history-container');
+                historyContainer.innerHTML = '';
+                
+                data.history.forEach(item => {
+                    const existingCorrection = (data.corrections || []).find(c => c.section_name === item.section_name);
+                    
+                    const row = document.createElement('div');
+                    row.className = 'data-row';
+                    
+                    let html = `
+                        <div class="data-label">${formatSectionName(item.section_name)}</div>
+                        <div class="data-value">${item.answer_text}</div>
+                    `;
+                    
+                    if (existingCorrection) {
+                        html += `
+                            <div style="margin-top: 10px; padding: 10px; background: #ecfdf5; border-left: 3px solid #10b981; border-radius: 5px;">
+                                <div class="data-label" style="color: #047857;">Doctor Correction</div>
+                                <div style="font-size: 1.05rem;">${existingCorrection.corrected_value}</div>
+                                <div style="font-size: 0.9rem; color: #047857; margin-top: 5px;">Note: ${existingCorrection.doctor_note}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    row.innerHTML = html;
+                    historyContainer.appendChild(row);
+                });
+
+                // Summary
+                if (data.summary) {
+                    document.getElementById('disp-summary').textContent = data.summary.doctor_verified_text || data.summary.ai_draft_text;
+                }
+            } else {
+                alert("Failed to load case: " + res.error);
+                window.location.href = 'my-cases.html';
+            }
+        });
+
+        function formatSectionName(name) {
+            return name.replace(/_/g, ' ').toUpperCase();
+        }
+    </script>
+</body>
+</html>

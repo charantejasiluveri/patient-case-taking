@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Case Intake - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .flow-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .flow-card { background: var(--card-background); padding: 40px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); }
+        .lang-btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; text-align: center; border: 2px solid var(--primary-color); border-radius: 8px; font-size: 1.1rem; cursor: pointer; background: white; color: var(--primary-color); font-weight: 600; transition: var(--transition); }
+        .lang-btn:hover { background: var(--primary-color); color: white; }
+        .navigation-btns { display: flex; justify-content: space-between; margin-top: 30px; }
+        .btn-secondary { background: #cbd5e1; color: var(--text-primary); border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-secondary:hover { background: #94a3b8; }
+        .progress-indicator { text-align: center; color: var(--text-secondary); margin-bottom: 20px; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header" style="background-color: var(--card-background); padding: 20px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h2 style="color: var(--primary-color); font-weight: 700; margin:0;">MEDIEASE</h2>
+        <a href="patient-dashboard.html" style="color: var(--text-secondary); text-decoration: none;">Exit Case</a>
+    </header>
+
+    <div class="flow-container">
+        <!-- Language Selection -->
+        <div id="language-selection" class="flow-card">
+            <h2 id="lang-title" style="text-align: center; margin-bottom: 30px;">Please select your preferred language</h2>
+            <button class="lang-btn" data-lang="english">English</button>
+            <button class="lang-btn" data-lang="hindi">हिंदी (Hindi)</button>
+            <button class="lang-btn" data-lang="telugu">తెలుగు (Telugu)</button>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="question-screen" class="flow-card" style="display: none;">
+            <div id="question-progress" class="progress-indicator">Question 1 of 5</div>
+            <div id="question-container">
+                <!-- Content injected by JS -->
+            </div>
+            <div class="navigation-btns">
+                <button id="btn-prev" class="btn-secondary">Previous</button>
+                <button id="btn-next" class="btn btn-primary" style="width: auto;">Next</button>
+            </div>
+        </div>
+
+        <!-- Review Screen -->
+        <div id="review-screen" class="flow-card" style="display: none;">
+            <h2 id="review-title" style="margin-bottom: 20px; text-align: center;">Review Your Information</h2>
+            <div id="review-content">
+                <!-- Content injected by JS -->
+            </div>
+            <div class="navigation-btns">
+                <button id="btn-prev" class="btn-secondary">Previous</button>
+                <button id="btn-submit" class="btn btn-primary" style="width: auto; background-color: var(--success-color);">Submit Case</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/case-taking.js"></script>
+</body>
+</html>

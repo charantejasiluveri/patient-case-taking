@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .upload-area { border: 2px dashed var(--primary-color); padding: 40px; text-align: center; border-radius: var(--border-radius); background: #f0f9ff; cursor: pointer; transition: var(--transition); }
+        .upload-area:hover { background: #e0f2fe; border-color: var(--primary-hover); }
+        .document-list { margin-top: 30px; display: grid; gap: 15px; }
+        .doc-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; }
+    </style>
+</head>
+<body style="background-color: var(--background-color);">
+    <header class="dashboard-header" style="background-color: var(--card-background); padding: 20px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h2 style="color: var(--primary-color); font-weight: 700; margin:0;">MEDIEASE</h2>
+        <a href="patient-dashboard.html" style="color: var(--text-secondary); text-decoration: none;">Back to Dashboard</a>
+    </header>
+
+    <main class="container">
+        <h2 style="margin-bottom: 20px;">Upload Documents</h2>
+        <div class="upload-area" onclick="alert('File upload dialog would open here.')">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" style="margin-bottom: 15px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h3 style="color: var(--primary-color); margin-bottom: 5px;">Click to upload or drag and drop</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">PDF, JPG, PNG (Max. 10MB)</p>
+        </div>
+
+        <h3 style="margin-top: 40px; margin-bottom: 15px;">Previous Documents</h3>
+        <div class="document-list">
+            <div class="doc-item">
+                <div style="display:flex; align-items:center; gap: 10px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <div>
+                        <div style="font-weight: 600;">Blood_Report_Aug.pdf</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Uploaded on Aug 15, 2026</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline" style="width:auto; padding: 5px 15px;">View</button>
+            </div>
+            
+            <div class="doc-item">
+                <div style="display:flex; align-items:center; gap: 10px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <div>
+                        <div style="font-weight: 600;">Old_Prescription.jpg</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Uploaded on Jul 22, 2026</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline" style="width:auto; padding: 5px 15px;">View</button>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

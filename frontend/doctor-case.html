@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Review - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-header { background-color: var(--card-background); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        
+        .section-card { background: var(--card-background); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 30px; }
+        .section-title { color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; font-size: 1.25rem; display: flex; justify-content: space-between; align-items: center;}
+        
+        .data-row { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color); }
+        .data-label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .data-value { font-size: 1.1rem; color: var(--text-primary); }
+        
+        /* Correction UI */
+        .correction-box { background: #fffbeb; border: 1px solid #fde68a; padding: 15px; border-radius: 8px; margin-top: 10px; display: none; }
+        .correction-btn { font-size: 0.85rem; padding: 5px 10px; background: #e2e8f0; color: var(--text-primary); border: none; border-radius: 5px; cursor: pointer; }
+        .correction-btn:hover { background: #cbd5e1; }
+        .correction-input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 5px; margin-bottom: 10px; font-family: inherit; }
+        
+        /* AI Summary */
+        .ai-summary { background: linear-gradient(to right, #f8fafc, #f1f5f9); border-left: 4px solid var(--primary-color); }
+        .ai-warning { color: var(--error-color); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; margin-bottom: 15px; }
+        
+        /* Action Bar */
+        .action-bar { position: sticky; bottom: 0; background: white; padding: 20px; box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1); display: flex; justify-content: flex-end; gap: 15px; border-top: 1px solid var(--border-color); z-index: 100; }
+    </style>
+</head>
+<body style="background-color: var(--background-color);">
+    <header class="dashboard-header">
+        <h2 style="color: var(--primary-color); font-weight: 700;">MEDIEASE <span style="font-size:1rem; color:var(--text-secondary); font-weight:500;">| Case Review</span></h2>
+        <a href="doctor-dashboard.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">&larr; Back to Dashboard</a>
+    </header>
+
+    <main class="container">
+        <!-- Left Column: Patient Data & Corrections -->
+        <div>
+            <div class="section-card">
+                <div class="section-title">Patient Details</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <div class="data-label">Name</div>
+                        <div class="data-value" id="pat-name">...</div>
+                    </div>
+                    <div>
+                        <div class="data-label">Age / Gender</div>
+                        <div class="data-value" id="pat-age-gender">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">Clinical History</div>
+                <div id="history-container">Loading history...</div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">Doctor Feedback</div>
+                <textarea id="doctor-feedback" class="form-control" rows="4" placeholder="Add clinical notes or feedback for this case..."></textarea>
+                <button class="btn btn-primary mt-4" onclick="saveFeedback()" style="width: auto;">Save Feedback</button>
+            </div>
+        </div>
+
+        <!-- Right Column: AI Summary & Actions -->
+        <div>
+            <div class="section-card ai-summary">
+                <div class="section-title" style="border-bottom-color: #cbd5e1; color: var(--text-primary);">
+                    AI Summary
+                </div>
+                <div class="ai-warning">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    AI-GENERATED DRAFT — CLINICIAN VERIFICATION REQUIRED
+                </div>
+                
+                <div class="data-label" style="margin-top: 20px;">Suggested Summary</div>
+                <textarea id="summary-text" class="form-control" rows="8" style="margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6;"></textarea>
+
+                <button class="btn btn-primary" style="width: 100%; background-color: var(--success-color);" onclick="verifyCase()">Verify & Confirm Case</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const caseId = urlParams.get('case_id');
+        let currentCorrections = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = getAuth();
+            if (!auth || auth.role !== 'doctor') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (!caseId) {
+                alert("No case ID provided.");
+                window.location.href = 'doctor-dashboard.html';
+                return;
+            }
+
+            const res = await apiFetch(`/api/patient/cases/${caseId}`);
+            if (res.ok) {
+                const data = res.data;
+                
+                // Patient Info
+                document.getElementById('pat-name').textContent = `${data.patient.full_name} (${data.session.patient_id})`;
+                document.getElementById('pat-age-gender').textContent = `${data.patient.age} / ${data.patient.gender}`;
+
+                // History
+                currentCorrections = data.corrections || [];
+                const historyContainer = document.getElementById('history-container');
+                historyContainer.innerHTML = '';
+                
+                data.history.forEach(item => {
+                    const existingCorrection = currentCorrections.find(c => c.section_name === item.section_name);
+                    
+                    const row = document.createElement('div');
+                    row.className = 'data-row';
+                    
+                    let html = `
+                        <div style="display:flex; justify-content: space-between;">
+                            <div>
+                                <div class="data-label">${formatSectionName(item.section_name)}</div>
+                                <div class="data-value">${item.answer_text}</div>
+                            </div>
+                            <button class="correction-btn" onclick="toggleCorrection('corr-${item.history_id}')">Flag / Correct</button>
+                        </div>
+                    `;
+                    
+                    if (existingCorrection) {
+                        html += `
+                            <div style="margin-top: 10px; padding: 10px; background: #ecfdf5; border-left: 3px solid #10b981;">
+                                <div class="data-label" style="color: #047857;">Doctor Correction</div>
+                                <div><strong>Value:</strong> ${existingCorrection.corrected_value}</div>
+                                <div><strong>Note:</strong> ${existingCorrection.doctor_note}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                        <div id="corr-${item.history_id}" class="correction-box">
+                            <label class="data-label" style="color:#92400e;">Doctor Correction</label>
+                            <input type="text" id="input-val-${item.history_id}" class="correction-input" placeholder="Enter corrected information...">
+                            <input type="text" id="input-note-${item.history_id}" class="correction-input" placeholder="Doctor Note (e.g. Verified with patient)">
+                            <button class="btn btn-outline" style="padding: 5px 15px; font-size: 0.9rem;" onclick="saveCorrection('${item.history_id}', '${item.section_name}', '${item.answer_text.replace(/'/g, "\\'")}')">Save</button>
+                        </div>
+                    `;
+                    row.innerHTML = html;
+                    historyContainer.appendChild(row);
+                });
+
+                // Summary
+                if (data.summary) {
+                    document.getElementById('summary-text').value = data.summary.doctor_verified_text || data.summary.ai_draft_text;
+                }
+                
+                // Feedback
+                if (data.feedback && data.feedback.length > 0) {
+                    document.getElementById('doctor-feedback').value = data.feedback[0].feedback;
+                }
+            }
+        });
+
+        function formatSectionName(name) {
+            return name.replace(/_/g, ' ').toUpperCase();
+        }
+
+        function toggleCorrection(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+        }
+
+        async function saveCorrection(historyId, sectionName, originalValue) {
+            const auth = getAuth();
+            const correctedValue = document.getElementById(`input-val-${historyId}`).value;
+            const note = document.getElementById(`input-note-${historyId}`).value;
+            
+            const res = await apiFetch(`/api/doctor/cases/${caseId}/correction`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    doctor_id: auth.doctor_id,
+                    section_name: sectionName,
+                    original_value: originalValue,
+                    corrected_value: correctedValue,
+                    doctor_note: note
+                })
+            });
+            
+            if (res.ok) {
+                alert("Correction saved");
+                window.location.reload();
+            } else {
+                alert("Failed to save correction: " + res.error);
+            }
+        }
+
+        async function saveFeedback() {
+            const auth = getAuth();
+            const feedback = document.getElementById('doctor-feedback').value;
+            const res = await apiFetch(`/api/doctor/cases/${caseId}/feedback`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    doctor_id: auth.doctor_id,
+                    feedback: feedback
+                })
+            });
+            
+            if (res.ok) {
+                alert("Feedback saved");
+            } else {
+                alert("Failed to save feedback: " + res.error);
+            }
+        }
+
+        async function verifyCase() {
+            const auth = getAuth();
+            const summary = document.getElementById('summary-text').value;
+            
+            const res = await apiFetch(`/api/doctor/cases/${caseId}/verify`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    doctor_id: auth.doctor_id,
+                    verified_summary: summary
+                })
+            });
+            
+            if (res.ok) {
+                alert("Case confirmed successfully!");
+                window.location.href = 'doctor-dashboard.html';
+            } else {
+                alert("Failed to confirm case: " + res.error);
+            }
+        }
+    </script>
+</body>
+</html>

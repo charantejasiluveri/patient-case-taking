@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cases - Mediease</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-header { background-color: var(--primary-color); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .case-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
+        .case-details h3 { margin-bottom: 5px; color: var(--text-primary); }
+        .case-details p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 5px; }
+        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .status-draft { background: #f1f5f9; color: #64748b; }
+        .status-submitted { background: #dbeafe; color: #2563eb; }
+        .status-reviewed { background: #dcfce7; color: #16a34a; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; }
+        .empty-state span { font-size: 4rem; display: block; margin-bottom: 20px; }
+    </style>
+</head>
+<body style="background: #f1f5f9;">
+    <header class="dashboard-header">
+        <h2 style="color: white; font-weight: 700;">MEDIEASE <span style="font-size:1rem; opacity:0.8; font-weight:500;">| My Cases</span></h2>
+        <a href="patient-dashboard.html" style="color: white; text-decoration: none; font-weight: 600;">&larr; Back to Dashboard</a>
+    </header>
+
+    <main class="container">
+        <h2 style="margin-bottom: 20px;">📋 Your Case History</h2>
+        
+        <div id="cases-container">
+            <div class="empty-state">
+                <span>📋</span>
+                <h3>Loading your cases...</h3>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = getAuth();
+            if (!auth || auth.role !== 'patient') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const res = await apiFetch(`/api/patient/${auth.patient_id}/cases`);
+            const container = document.getElementById('cases-container');
+            
+            if (res.ok && res.data.length > 0) {
+                container.innerHTML = ''; // Clear loading
+                
+                // Sort cases by latest first
+                const cases = res.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                cases.forEach(c => {
+                    let badgeClass = 'status-draft';
+                    let statusText = 'Draft';
+                    
+                    if (c.status === 'submitted' || c.status === 'in_progress') {
+                        badgeClass = 'status-submitted';
+                        statusText = 'Doctor Review Pending';
+                    } else if (c.status === 'reviewed' || c.status === 'confirmed') {
+                        badgeClass = 'status-reviewed';
+                        statusText = 'Reviewed by Doctor';
+                    }
+                    
+                    // Format date
+                    const d = new Date(c.created_at);
+                    const dateStr = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                    const card = document.createElement('div');
+                    card.className = 'case-card';
+                    card.innerHTML = `
+                        <div class="case-details">
+                            <h3>Case #${c.case_id}</h3>
+                            <p><strong>Date:</strong> ${dateStr}</p>
+                            <p><span class="status-badge ${badgeClass}">${statusText}</span></p>
+                        </div>
+                        <div>
+                            <a href="patient-case.html?case_id=${c.case_id}" class="btn btn-primary">View Case</a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span>📋</span>
+                        <h3>No cases yet.</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Start a new case to see it here.</p>
+                        <a href="patient-dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
