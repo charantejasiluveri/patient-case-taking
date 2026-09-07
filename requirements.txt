@@ -1,0 +1,8 @@
+# This is a Node.js project (React + Vite).
+# Project dependencies are managed in package.json.
+# To run this project locally, you only need the following system requirements:
+
+Node.js >= 18.0.0
+npm (Node Package Manager)
+
+# See package.json for the full list of project dependencies.
